@@ -31,7 +31,11 @@ print()
 # TODO 1: ¿qué columnas llegan como número y cuáles como texto? Anótalo para el
 #         informe. Ojo con satisfaccion: llega como número y es ordinal
 #         ("4 no es el doble de 2") — la justificación va en el informe.
+print("Columnas numéricas:")
+print(clientes.select_dtypes(include="number").columns.tolist())
 
+print("\nColumnas de texto:")
+print(clientes.select_dtypes(include="object").columns.tolist())
 # ---------------------------------------------------------------------------
 # 3. Valores únicos — ¿cuántas categorías hay y cuáles son?
 # ---------------------------------------------------------------------------
@@ -40,8 +44,12 @@ print()
 #         clientes[columna].unique() y len(). ¿Cuántas categorías tiene genero?
 # for columna in clientes.columns:
 #     ...
-print()
 
+print()
+for columna in clientes.columns:
+    valores = clientes[columna].unique()
+    print(f"{columna}: {len(valores)} valores únicos")
+    print(f"  Valores: {valores}")
 # ---------------------------------------------------------------------------
 # 4. Declarar el orden de las variables ordinales
 # ---------------------------------------------------------------------------
@@ -57,21 +65,44 @@ print()
 #         .isna().sum() — la trampa del typo es silenciosa.
 print()
 
+# TODO 3: nivel_educacion
+orden_educacion = pd.CategoricalDtype(categories=["Primaria","Secundaria","Tercer nivel","Posgrado"],ordered=True)
+
+clientes["nivel_educacion"] = clientes["nivel_educacion"].astype(orden_educacion)
+
+print("Nivel educativo mínimo:", clientes["nivel_educacion"].min())
+
+
+# TODO 4: satisfaccion
+orden_satisfaccion = pd.CategoricalDtype(categories=["1", "2", "3", "4", "5"],ordered=True)
+
+clientes["satisfaccion"] = clientes["satisfaccion"].astype(str).astype(orden_satisfaccion)
+
+print("Satisfacción mínima:", clientes["satisfaccion"].min())
+
+# Prueba extra: error por escribir incorrectamente "Postgrado"
+orden_incorrecto = pd.CategoricalDtype(
+    categories=["Primaria","Secundaria","Tercer nivel","Postgrado"],ordered=True)
+
+prueba = clientes["nivel_educacion"].astype(str).astype(orden_incorrecto)
+
+print("Valores faltantes por el error tipográfico:", prueba.isna().sum())
 # ---------------------------------------------------------------------------
 # 5. Resumen de la clasificación (para el informe)
 # ---------------------------------------------------------------------------
 # TODO 5: completa el resumen con el tipo de cada variable (el criterio que
 #         justifica cada clasificación va en el informe).
 clasificacion = {
-    "cliente_id": "…",
-    "edad": "…",
-    "numero_hijos": "…",
-    "genero": "…",
-    "nivel_educacion": "…",
-    "ciudad": "…",
-    "ingresos_mensuales": "…",
-    "satisfaccion": "…",
+    "cliente_id": "Identificador",
+    "edad": "Numérica discreta",
+    "numero_hijos": "Numérica discreta",
+    "genero": "Categórica nominal",
+    "nivel_educacion": "Categórica ordinal",
+    "ciudad": "Categórica nominal",
+    "ingresos_mensuales": "Numérica continua",
+    "satisfaccion": "Categórica ordinal",
 }
+
 print("Resumen de la clasificación (para el informe):")
 for variable, tipo in clasificacion.items():
     print(f"  {variable:20s} {tipo}")
